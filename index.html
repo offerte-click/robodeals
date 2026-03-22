@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboDeals — Le migliori offerte selezionate dall'AI</title>
+    <meta name="description" content="Offerte Amazon selezionate e valutate dall'intelligenza artificiale. Ogni deal ha un punteggio di qualità verificato.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0b0d11;
+            --surface: #14171f;
+            --surface-hover: #1c2030;
+            --border: #232838;
+            --text: #e8eaf0;
+            --text-dim: #7c819a;
+            --accent: #2BA2DF;
+            --accent-hover: #49b4ea;
+            --green: #22c55e;
+            --red: #ef4444;
+            --gold: #D4AF37;
+            --badge-bg: #132a1e;
+            --badge-text: #4ade80;
+            --discount-bg: #1a1030;
+            --discount-text: #a78bfa;
+            --moda-accent: #564C7F;
+            --used-bg: #1a2a18;
+            --used-text: #86efac;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            letter-spacing: -.02em;
+        }
+
+        .logo-robo { color: var(--accent); }
+        .logo-deals { color: var(--text); }
+
+        .header-actions {
+            display: flex;
+            gap: .6rem;
+            align-items: center;
+        }
+
+        .tg-btn {
+            background: #2AABEE;
+            color: #fff;
+            text-decoration: none;
+            padding: .5rem 1rem;
+            border-radius: 8px;
+            font-size: .82rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            transition: opacity .2s;
+        }
+
+        .tg-btn:hover { opacity: .85; }
+
+        /* Filters */
+        .filters {
+            max-width: 1200px;
+            margin: 1rem auto .5rem;
+            padding: 0 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: .4rem .9rem;
+            border-radius: 20px;
+            font-size: .8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+        .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .filter-btn.moda.active { background: var(--moda-accent); border-color: var(--moda-accent); }
+
+        .filter-search {
+            flex: 1;
+            min-width: 180px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: .45rem .9rem;
+            border-radius: 20px;
+            font-size: .8rem;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .filter-search:focus { border-color: var(--accent); }
+        .filter-search::placeholder { color: var(--text-dim); }
+
+        /* Stats bar */
+        .stats-bar {
+            max-width: 1200px;
+            margin: .5rem auto;
+            padding: 0 1rem;
+            display: flex;
+            gap: 1.5rem;
+            font-size: .8rem;
+            color: var(--text-dim);
+        }
+
+        .stats-bar strong { color: var(--text); }
+
+        /* Sort */
+        .sort-bar {
+            max-width: 1200px;
+            margin: .5rem auto;
+            padding: 0 1rem;
+            display: flex;
+            gap: .5rem;
+            font-size: .75rem;
+        }
+
+        .sort-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: .2rem .5rem;
+            border-radius: 4px;
+            font-size: .75rem;
+        }
+
+        .sort-btn:hover { color: var(--text); }
+        .sort-btn.active { color: var(--accent); font-weight: 700; }
+
+        /* Grid */
+        .grid {
+            max-width: 1200px;
+            margin: .8rem auto;
+            padding: 0 1rem 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: .8rem;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color .2s, transform .15s, box-shadow .2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(43, 162, 223, .08);
+        }
+
+        .card.moda:hover { border-color: var(--moda-accent); box-shadow: 0 8px 24px rgba(86, 76, 127, .08); }
+
+        .card-img-wrap {
+            position: relative;
+            background: #fff;
+        }
+
+        .card-img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: contain;
+            padding: .8rem;
+        }
+
+        .card-badges {
+            position: absolute;
+            top: .5rem;
+            left: .5rem;
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+        }
+
+        .badge {
+            font-size: .65rem;
+            font-weight: 700;
+            padding: .2rem .5rem;
+            border-radius: 4px;
+        }
+
+        .badge-minimo { background: #3b1a1a; color: var(--red); }
+        .badge-discount { background: var(--discount-bg); color: var(--discount-text); }
+        .badge-used { background: var(--used-bg); color: var(--used-text); }
+        .badge-moda { background: #1a1530; color: var(--moda-accent); }
+        .badge-score { background: rgba(0,0,0,.6); color: #fff; font-size: .6rem; }
+
+        .card-body { padding: .8rem 1rem; flex: 1; display: flex; flex-direction: column; }
+
+        .card-category {
+            font-size: .65rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: .3rem;
+        }
+
+        .card-title {
+            font-size: .85rem;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: .6rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .card-prices {
+            display: flex;
+            align-items: baseline;
+            gap: .4rem;
+            flex-wrap: wrap;
+        }
+
+        .price-now {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .card.moda .price-now { color: var(--moda-accent); }
+
+        .price-was {
+            font-size: .82rem;
+            color: var(--text-dim);
+            text-decoration: line-through;
+        }
+
+        .card-used-info {
+            font-size: .72rem;
+            color: var(--used-text);
+            margin-top: .3rem;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: .5rem;
+            padding-top: .5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .score-bar {
+            width: 60px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: var(--accent);
+        }
+
+        .score-text { font-size: .7rem; color: var(--text-dim); }
+        .stars { color: #fbbf24; font-size: .72rem; }
+
+        .card-cta {
+            display: block;
+            text-align: center;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            padding: .6rem;
+            font-weight: 700;
+            font-size: .82rem;
+            transition: background .2s;
+        }
+
+        .card-cta:hover { background: var(--accent-hover); }
+        .card.moda .card-cta { background: var(--moda-accent); }
+        .card.moda .card-cta:hover { opacity: .85; }
+
+        /* Loading */
+        .status {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: var(--text-dim);
+            grid-column: 1 / -1;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-dim);
+            font-size: .7rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer a { color: var(--accent); text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+            .card-img { padding: .5rem; }
+            .card-body { padding: .6rem .7rem; }
+            .price-now { font-size: 1.1rem; }
+            .card-title { font-size: .78rem; }
+            .header-inner { flex-wrap: wrap; gap: .5rem; }
+            .filters { gap: .4rem; }
+        }
+
+        @media (max-width: 380px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">🤖 <span class="logo-robo">Robo</span><span class="logo-deals">Deals</span></div>
+        <div class="header-actions">
+            <a class="tg-btn" href="https://t.me/robodeals" target="_blank">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.53 8.1l-1.8 8.5c-.14.6-.5.75-.99.47l-2.76-2.04-1.33 1.28c-.15.15-.27.27-.56.27l.2-2.8 5.1-4.6c.22-.2-.05-.3-.34-.12l-6.3 3.97-2.72-.85c-.59-.18-.6-.59.12-.88l10.63-4.1c.49-.18.92.12.75.88z"/></svg>
+                Canale Telegram
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="filters" id="filters">
+    <button class="filter-btn active" data-filter="all">Tutte</button>
+    <button class="filter-btn" data-filter="tech">Tech</button>
+    <button class="filter-btn" data-filter="casa">Casa</button>
+    <button class="filter-btn moda" data-filter="moda">Moda</button>
+    <button class="filter-btn" data-filter="used">Usato</button>
+    <input class="filter-search" type="text" id="search" placeholder="Cerca offerte...">
+</div>
+
+<div class="stats-bar" id="stats"></div>
+
+<div class="sort-bar">
+    <span style="color:var(--text-dim)">Ordina:</span>
+    <button class="sort-btn active" data-sort="score">Punteggio</button>
+    <button class="sort-btn" data-sort="discount">Sconto</button>
+    <button class="sort-btn" data-sort="price-asc">Prezzo ↑</button>
+    <button class="sort-btn" data-sort="price-desc">Prezzo ↓</button>
+    <button class="sort-btn" data-sort="newest">Recenti</button>
+</div>
+
+<div class="grid" id="deals-grid">
+    <div class="status" id="loading">
+        <div class="spinner"></div>
+        Caricamento offerte...
+    </div>
+</div>
+
+<footer class="footer">
+    <p>Le offerte contengono link affiliati Amazon. I prezzi possono variare.</p>
+    <p style="margin-top:.3rem">RoboDeals &mdash; Offerte selezionate dall'intelligenza artificiale</p>
+</footer>
+
+<script>
+const AFFILIATE = 'robodeals';
+const DATA_URL = 'offers.json';
+
+let allDeals = [];
+let currentFilter = 'all';
+let currentSort = 'score';
+let searchQuery = '';
+
+const TECH_KW = /smartphone|tablet|laptop|notebook|computer|monitor|tv |smart tv|oled|qled|qned|cuffie|auricolar|speaker|soundbar|drone|action cam|fotocamera|controller|gamepad|console|playstation|xbox|nintendo|tastiera|mouse|ssd|ram |scheda video|smartwatch|caricatore|caricabatterie|power bank|hub usb|router|nas /i;
+const CASA_KW = /vaporiera|pentola|padella|contenitor|microonde|tostapane|bollitore|macchina caff|aspirapolvere|lavapavimenti|scopa elettrica|robot aspira|cuscin|tappet|detersiv|organizer cucina/i;
+
+function classify(deal) {
+    const text = (deal.title || '') + ' ' + (deal.category || '');
+    if (deal.channel === 'robodeals_moda') return 'moda';
+    if (deal.used) return 'used';
+    if (TECH_KW.test(text)) return 'tech';
+    if (CASA_KW.test(text)) return 'casa';
+    return 'other';
+}
+
+function amazonUrl(d) {
+    return `https://www.${d.host || 'amazon.it'}/dp/${d.productID}/?tag=${AFFILIATE}-21`;
+}
+
+function starsHtml(r) {
+    if (!r) return '';
+    return '<span class="stars">' + '★'.repeat(Math.floor(r)) + (r - Math.floor(r) >= .5 ? '½' : '') + '</span>';
+}
+
+function renderCard(deal) {
+    const url = amazonUrl(deal);
+    const isModa = deal.channel === 'robodeals_moda';
+    const isUsed = !!deal.used;
+    const cls = isModa ? 'moda' : '';
+    const score = deal.roboScore?.total || 0;
+    const minimo = deal.minimoStorico || deal.roboScore?.breakdown?.minimoStorico;
+
+    let priceNow, priceWas, discPct;
+    if (isUsed && deal.used.price) {
+        priceNow = deal.used.price.toFixed(2) + '€';
+        priceWas = deal.price ? deal.price.toFixed(2) + '€' : '';
+        discPct = deal.price ? Math.round((1 - deal.used.price / deal.price) * 100) : 0;
+    } else {
+        priceNow = deal.price ? deal.price.toFixed(2) + '€' : '';
+        priceWas = deal.startPrice ? deal.startPrice.toFixed(2) + '€' : '';
+        discPct = deal.discount || 0;
+    }
+
+    let html = `<div class="card ${cls}">`;
+    html += `<div class="card-img-wrap">`;
+    if (deal.image) html += `<a href="${url}" target="_blank"><img class="card-img" src="${deal.image}" alt="" loading="lazy"></a>`;
+
+    html += `<div class="card-badges">`;
+    if (minimo) html += `<span class="badge badge-minimo">📉 Minimo storico</span>`;
+    if (discPct > 0) html += `<span class="badge badge-discount">-${discPct}%</span>`;
+    if (isUsed) html += `<span class="badge badge-used">♻️ ${deal.used.warehouse ? 'Seconda mano' : 'Usato'}</span>`;
+    if (isModa) html += `<span class="badge badge-moda">👗 Moda</span>`;
+    html += `</div></div>`;
+
+    html += `<div class="card-body">`;
+    if (deal.category) html += `<div class="card-category">${deal.category}</div>`;
+    html += `<div class="card-title">${deal.title || deal.productID}</div>`;
+
+    html += `<div class="card-prices">`;
+    if (priceNow) html += `<span class="price-now">${priceNow}</span>`;
+    if (priceWas) html += `<span class="price-was">${priceWas}</span>`;
+    html += `</div>`;
+
+    if (isUsed && deal.used.offers > 1) {
+        html += `<div class="card-used-info">♻️ ${deal.used.offers} offerte disponibili in diverse condizioni</div>`;
+    }
+
+    html += `<div class="card-meta">`;
+    html += `<div><div class="score-bar"><div class="score-fill" style="width:${score}%;background:${isModa ? 'var(--moda-accent)' : 'var(--accent)'}"></div></div><span class="score-text">${score}/100</span></div>`;
+    if (deal.rating) html += starsHtml(deal.rating);
+    html += `</div>`;
+
+    html += `</div>`;
+    html += `<a class="card-cta" href="${url}" target="_blank">🛒 Vai all'offerta</a>`;
+    html += `</div>`;
+    return html;
+}
+
+function getFilteredDeals() {
+    let filtered = allDeals;
+
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(d => classify(d) === currentFilter);
+    }
+
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(d => (d.title || '').toLowerCase().includes(q) || (d.category || '').toLowerCase().includes(q));
+    }
+
+    const sorters = {
+        'score':      (a, b) => (b.roboScore?.total || 0) - (a.roboScore?.total || 0),
+        'discount':   (a, b) => (b.discount || 0) - (a.discount || 0),
+        'price-asc':  (a, b) => (a.price || 9999) - (b.price || 9999),
+        'price-desc': (a, b) => (b.price || 0) - (a.price || 0),
+        'newest':     (a, b) => (b.createdAt || 0) - (a.createdAt || 0),
+    };
+
+    filtered.sort(sorters[currentSort] || sorters.score);
+    return filtered;
+}
+
+function render() {
+    const grid = document.getElementById('deals-grid');
+    const stats = document.getElementById('stats');
+    const filtered = getFilteredDeals();
+
+    if (!filtered.length) {
+        grid.innerHTML = '<div class="status">Nessuna offerta trovata.</div>';
+        return;
+    }
+
+    stats.innerHTML = `<span><strong>${filtered.length}</strong> offerte${currentFilter !== 'all' ? ' (filtrate)' : ''}</span><span>Totale: <strong>${allDeals.length}</strong></span>`;
+    grid.innerHTML = filtered.map(renderCard).join('');
+}
+
+async function load() {
+    try {
+        const res = await fetch(DATA_URL + '?t=' + Date.now());
+        if (!res.ok) throw new Error('Fetch failed');
+        const data = await res.json();
+
+        allDeals = (data.deals || []).filter(d => d.roboScore?.total >= 0);
+
+        document.getElementById('stats').innerHTML = `
+            <span><strong>${allDeals.length}</strong> offerte attive</span>
+            <span>Aggiornato: <strong>${new Date(data.updatedAt).toLocaleString('it-IT')}</strong></span>
+        `;
+
+        render();
+    } catch (err) {
+        document.getElementById('deals-grid').innerHTML = '<div class="status">Impossibile caricare le offerte. Riprova tra poco.</div>';
+    }
+}
+
+// Filter buttons
+document.getElementById('filters').addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+});
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    render();
+});
+
+// Sort
+document.querySelector('.sort-bar').addEventListener('click', e => {
+    const btn = e.target.closest('.sort-btn');
+    if (!btn) return;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSort = btn.dataset.sort;
+    render();
+});
+
+load();
+setInterval(load, 5 * 60 * 1000);
+</script>
+
+</body>
+</html>
