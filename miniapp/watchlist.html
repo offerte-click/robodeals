@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboDeals - Watchlist</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: var(--tg-theme-bg-color, #1a1a2e);
+            --text: var(--tg-theme-text-color, #e0e0e0);
+            --hint: var(--tg-theme-hint-color, #999);
+            --link: var(--tg-theme-link-color, #2BA2DF);
+            --btn: var(--tg-theme-button-color, #2BA2DF);
+            --btn-text: var(--tg-theme-button-text-color, #fff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #16213e);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--hint);
+        }
+
+        .keepa-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .keepa-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .keepa-loading {
+            color: #666;
+            padding: 40px 0;
+            font-size: 13px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--hint);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--secondary-bg);
+            color: var(--text);
+            font-size: 16px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--btn);
+        }
+
+        .form-group input::placeholder {
+            color: var(--hint);
+            opacity: 0.6;
+        }
+
+        .form-group .hint {
+            font-size: 11px;
+            color: var(--hint);
+            margin-top: 4px;
+        }
+
+        .divider {
+            text-align: center;
+            color: var(--hint);
+            font-size: 12px;
+            margin: 12px 0;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .product-info {
+            background: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+
+        .product-info .title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .product-info .price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--link);
+        }
+
+        .product-info .price .old {
+            font-size: 13px;
+            color: var(--hint);
+            text-decoration: line-through;
+            margin-left: 8px;
+            font-weight: 400;
+        }
+
+        .product-info .asin {
+            font-size: 11px;
+            color: var(--hint);
+            margin-top: 4px;
+        }
+
+        .error-msg {
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--hint);
+        }
+
+        .error-msg h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>⭐ Tieni sotto controllo</h1>
+            <p>Ricevi una notifica quando il prezzo scende</p>
+        </div>
+
+        <div id="product-info" class="product-info" style="display:none">
+            <div class="title" id="product-title"></div>
+            <div class="price">
+                <span id="product-price"></span>
+                <span class="old" id="product-old-price"></span>
+            </div>
+            <div class="asin" id="product-asin"></div>
+        </div>
+
+        <div id="keepa-container" class="keepa-container">
+            <div class="keepa-loading">Caricamento storico prezzi...</div>
+        </div>
+
+        <div class="form-group">
+            <label>Avvisami quando il prezzo scende sotto</label>
+            <input type="number" id="targetPrice" inputmode="decimal" step="0.01" min="0" placeholder="es. 29.99">
+            <div class="hint">Lascia vuoto per essere avvisato ad ogni variazione</div>
+        </div>
+
+        <div class="divider">oppure</div>
+
+        <div class="form-group">
+            <label>Avvisami quando lo sconto supera</label>
+            <input type="number" id="minDiscount" inputmode="numeric" step="1" min="1" max="99" placeholder="es. 30">
+            <div class="hint">Percentuale minima di sconto desiderata</div>
+        </div>
+    </div>
+
+    <div id="error" class="error-msg" style="display:none">
+        <h2>Prodotto non trovato</h2>
+        <p>Apri questa pagina dal bottone sotto un'offerta RoboDeals</p>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) tg.expand();
+
+        // Leggi ASIN dal parametro URL
+        const params = new URLSearchParams(window.location.search);
+        const asin = params.get('asin');
+
+        if (!asin) {
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        } else {
+            init(asin);
+        }
+
+        function init(asin) {
+            // Mostra ASIN
+            document.getElementById('product-asin').textContent = 'ASIN: ' + asin;
+
+            // Carica storico prezzi Keepa
+            const keepaImg = document.createElement('img');
+            keepaImg.src = 'https://graph.keepa.com/pricehistory.png?asin=' + asin + '&domain=8';
+            keepaImg.alt = 'Storico prezzi';
+            keepaImg.onload = function() {
+                const container = document.getElementById('keepa-container');
+                container.innerHTML = '';
+                container.appendChild(keepaImg);
+            };
+            keepaImg.onerror = function() {
+                document.getElementById('keepa-container').innerHTML =
+                    '<div class="keepa-loading">Storico prezzi non disponibile</div>';
+            };
+
+            // Carica info prodotto dal sito (offers.json)
+            loadProductInfo(asin);
+
+            // Setup MainButton di Telegram
+            if (tg) {
+                tg.MainButton.setText('Aggiungi alla Watchlist');
+                tg.MainButton.show();
+                tg.MainButton.onClick(submit);
+            }
+        }
+
+        async function loadProductInfo(asin) {
+            try {
+                const res = await fetch('https://robodeals.website/offers.json');
+                const offers = await res.json();
+                const deal = offers.find(d => d.productID === asin || d.asin === asin);
+                if (deal) {
+                    document.getElementById('product-info').style.display = 'block';
+                    document.getElementById('product-title').textContent = deal.title || '';
+                    if (deal.price) {
+                        document.getElementById('product-price').textContent = deal.price.toFixed(2) + '\u20AC';
+                        // Pre-compila il prezzo target con il prezzo attuale
+                        document.getElementById('targetPrice').placeholder = deal.price.toFixed(2);
+                    }
+                    if (deal.startPrice) {
+                        document.getElementById('product-old-price').textContent = deal.startPrice.toFixed(2) + '\u20AC';
+                    }
+                }
+            } catch (e) {
+                // Non critico — il form funziona anche senza info prodotto
+            }
+        }
+
+        function submit() {
+            const targetPrice = document.getElementById('targetPrice').value;
+            const minDiscount = document.getElementById('minDiscount').value;
+
+            const data = { asin };
+            if (targetPrice) data.targetPrice = parseFloat(targetPrice);
+            if (minDiscount) data.minDiscount = parseInt(minDiscount, 10);
+
+            if (tg) {
+                tg.sendData(JSON.stringify(data));
+            }
+        }
+    </script>
+</body>
+</html>
