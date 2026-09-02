@@ -798,12 +798,14 @@ setInterval(load, 5 * 60 * 1000);
     // Evento server-side (Conversions API OpenAI via Worker, key non esposta).
     function trackJoinClick() {
         const url = 'https://app.robodeals.workers.dev/pixel/event';
-        const payload = JSON.stringify({ type: 'channel_join_click' });
+        const payload = '{}';
         try {
+            // text/plain → "simple request": niente preflight CORS. Il Worker
+            // legge comunque il body come JSON. Fire-and-forget, non leggiamo la risposta.
             if (navigator.sendBeacon) {
-                navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }));
+                navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
             } else {
-                fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true });
+                fetch(url, { method: 'POST', body: payload, keepalive: true, mode: 'no-cors' });
             }
         } catch (e) { /* tracking best-effort, non blocca la navigazione */ }
     }
