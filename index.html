@@ -795,9 +795,22 @@ setInterval(load, 5 * 60 * 1000);
 
     function open() { overlay.classList.add('open'); }
 
+    // Evento server-side (Conversions API OpenAI via Worker, key non esposta).
+    function trackJoinClick() {
+        const url = 'https://app.robodeals.workers.dev/pixel/event';
+        const payload = JSON.stringify({ type: 'channel_join_click' });
+        try {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }));
+            } else {
+                fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true });
+            }
+        } catch (e) { /* tracking best-effort, non blocca la navigazione */ }
+    }
+
     document.getElementById('tg-modal-close').addEventListener('click', close);
     document.getElementById('tg-modal-dismiss').addEventListener('click', close);
-    document.getElementById('tg-modal-join').addEventListener('click', close);
+    document.getElementById('tg-modal-join').addEventListener('click', () => { trackJoinClick(); close(); });
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) close(); });
 
