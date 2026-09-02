@@ -775,6 +775,9 @@ document.querySelector('.sort-row').addEventListener('click', e => {
 load();
 setInterval(load, 5 * 60 * 1000);
 
+// Pixel client-side: registra la visualizzazione della pagina.
+try { if (window.oaiq) oaiq('measure', 'contents_viewed', { type: 'contents' }); } catch (e) {}
+
 /* Telegram invite modal */
 (function() {
     const overlay = document.getElementById('tg-modal-overlay');
